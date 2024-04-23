@@ -1,0 +1,22 @@
+.add-btn {
+  background-color: rgb(237, 237, 237) !important;
+  color: #f50057 !important;
+}
+
+.subCampaigns-list {
+  display: flex;
+}
+
+.subCampaign-info {
+  display: flex;
+  margin-top: 16px;
+}
+
+.subCampaign-info-name {
+  flex-grow: 8;
+}
+
+.subCampaign-info-status {
+  flex-grow: 4;
+  text-align: center;
+}
