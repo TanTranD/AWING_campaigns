@@ -1,4 +1,5 @@
-import * as React from "react";
+import React from "react";
+import "./subCampaigns.css";
 import AddIcon from "@mui/icons-material/Add";
 import {
   Checkbox,
@@ -8,59 +9,69 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import "./index.css";
-import { initialSubCampaigns } from "../../constants/constants";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AdsTable from "./components/adsTable";
-import { AdsType } from "../../types/types";
+import AdsTable from "./components/adsTable/adsTable";
+import { AdsType, SubCampaign } from "../../types/types";
+import { SubCampaignField } from "../../constants/constants";
 
 interface IAdsSubCampaignsProps {
-  onSubmit: any;
+  subCampaigns: SubCampaign[];
+  setSubCampaigns: (data: SubCampaign[]) => void;
+  isSubmit: boolean;
 }
 
-function SubCampaigns({ onSubmit }: IAdsSubCampaignsProps) {
-  const [subCampaigns, setSubCampaigns] = React.useState(initialSubCampaigns);
+const SubCampaigns: React.FC<IAdsSubCampaignsProps> = ({
+  subCampaigns,
+  setSubCampaigns,
+  isSubmit,
+}: Readonly<IAdsSubCampaignsProps>) => {
   const [subCampaignSelected, setSubCampaignSelected] = React.useState(0);
 
   const addSubCampaign = () => {
-    setSubCampaigns([
-      ...subCampaigns,
-      {
-        name: `Chiến dịch con ${subCampaigns.length + 1}`,
-        status: true,
-        ads: [
-          {
-            name: "Quảng cáo 1",
-            quantity: 0,
-          },
-        ],
-      },
-    ]);
+    const updatedSubCampaigns = [...subCampaigns];
+
+    updatedSubCampaigns.push({
+      name: `Chiến dịch con ${subCampaigns.length + 1}`,
+      status: true,
+      ads: [
+        {
+          name: "Quảng cáo 1",
+          quantity: 0,
+          id: `sub${subCampaignSelected}_0`,
+        },
+      ],
+    });
+
+    setSubCampaigns(updatedSubCampaigns);
     setSubCampaignSelected(subCampaigns.length);
   };
 
-  const calculateQuantitySubCampaign = (subCampaign: any) => {
+  const calculateQuantitySubCampaign = (subCampaign: SubCampaign) => {
     return subCampaign.ads.reduce((totalQuantity: number, item: AdsType) => {
       return totalQuantity + item.quantity;
     }, 0);
   };
 
-  const handleChangeStatus = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeSubCampaign = (field: string, value: string | boolean) => {
     const updatedSubCampaigns = [...subCampaigns];
-    updatedSubCampaigns[subCampaignSelected].status = event.target.checked;
+
+    if (field === SubCampaignField.NAME) {
+      updatedSubCampaigns[subCampaignSelected].name = value as string;
+    } else {
+      updatedSubCampaigns[subCampaignSelected].status = value as boolean;
+    }
 
     setSubCampaigns([...updatedSubCampaigns]);
   };
 
-  const handleChangeSubCampaignName = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const updatedSubCampaigns = [...subCampaigns];
-    updatedSubCampaigns[subCampaignSelected].name = event.target.value;
-
-    setSubCampaigns([...updatedSubCampaigns]);
+  const handleCheckSubCampaignsInvalid = (subCampaign: SubCampaign) => {
+    return (
+      isSubmit &&
+      (!subCampaign.name ||
+        subCampaign.ads.some((item) => !item.name || !item.quantity))
+    );
   };
-  console.log(subCampaigns[subCampaignSelected].name);
+
   return (
     <div className="wrapper">
       <Grid container>
@@ -75,13 +86,12 @@ function SubCampaigns({ onSubmit }: IAdsSubCampaignsProps) {
                 <AddIcon />
               </IconButton>
             </div>
-            {subCampaigns.map((subCampaign, index) => (
+            {subCampaigns.map((subCampaign: SubCampaign, index: number) => (
               <div
                 key={index}
                 onClick={() => {
                   setSubCampaignSelected(index);
                 }}
-                className="1"
               >
                 <Paper
                   sx={{
@@ -96,7 +106,13 @@ function SubCampaigns({ onSubmit }: IAdsSubCampaignsProps) {
                     textAlign: "center",
                   }}
                 >
-                  <Typography variant="h6" sx={{ padding: "8px 8px 4px" }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ padding: "8px 8px 4px" }}
+                    color={
+                      handleCheckSubCampaignsInvalid(subCampaign) ? "red" : ""
+                    }
+                  >
                     {subCampaign.name}
                     <CheckCircleIcon
                       sx={{ fontSize: "14px", paddingLeft: "8px" }}
@@ -120,12 +136,25 @@ function SubCampaigns({ onSubmit }: IAdsSubCampaignsProps) {
                 label="Tên chiến dịch con"
                 variant="standard"
                 value={subCampaigns[subCampaignSelected].name}
-                onChange={handleChangeSubCampaignName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleChangeSubCampaign(SubCampaignField.NAME, e.target.value)
+                }
+                error={isSubmit && !subCampaigns[subCampaignSelected].name}
+                helperText={
+                  isSubmit &&
+                  !subCampaigns[subCampaignSelected].name &&
+                  "Dữ liệu không hợp lệ"
+                }
               />
             </div>
             <div className="subCampaign-info-status">
               <Checkbox
-                onChange={handleChangeStatus}
+                onChange={(e) =>
+                  handleChangeSubCampaign(
+                    SubCampaignField.STATUS,
+                    e.target.checked
+                  )
+                }
                 color="primary"
                 checked={subCampaigns[subCampaignSelected].status}
               />
@@ -136,11 +165,12 @@ function SubCampaigns({ onSubmit }: IAdsSubCampaignsProps) {
             subCampaignSelected={subCampaignSelected}
             setSubCampaigns={setSubCampaigns}
             subCampaigns={subCampaigns}
+            isSubmit={isSubmit}
           />
         </Grid>
       </Grid>
     </div>
   );
-}
+};
 
 export default SubCampaigns;

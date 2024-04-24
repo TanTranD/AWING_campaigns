@@ -5,21 +5,41 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import { useState } from "react";
-import { ListTabs } from "./constants/constants";
-import Infomation from "./components/infomation";
-import SubCampaigns from "./components/subCampaigns";
+import { ListTabs, initialSubCampaigns } from "./constants/constants";
+import Infomation from "./components/infomation/infomation";
+import SubCampaigns from "./components/subCampaigns/subCampaigns";
 import { Button, Grid, Paper } from "@mui/material";
+import { CampaignsInfo, SubCampaign } from "./types/types";
 
 function App() {
-  const [tab, setTab] = useState(ListTabs.INFO);
+  const [tab, setTab] = useState<string>(ListTabs.INFO);
+  const [campaignInfo, setCampaignInfo] = useState<CampaignsInfo>();
+  const [subCampaigns, setSubCampaigns] =
+    useState<SubCampaign[]>(initialSubCampaigns);
+  const [isSubmit, setIsSubmit] = useState<boolean>(false);
 
   const handleTabChange = (event: React.SyntheticEvent, newTab: string) => {
     setTab(newTab);
   };
 
   const handleSubmit = () => {
-    // Thực hiện xử lý submit ở đây với dữ liệu subCampaigns
-    console.log("Submitted");
+    if (
+      !campaignInfo?.name ||
+      subCampaigns.some(
+        (subCampaign) =>
+          !subCampaign.name ||
+          subCampaign.ads.some((item) => !item.name || !item.quantity)
+      )
+    ) {
+      alert("Vui lòng điền đúng và đầy đủ thông tin");
+    } else {
+      alert(`Thêm thành công chiến dịch
+      {"campaign": ${JSON.stringify(
+        campaignInfo
+      )}, "subCampaigns": ${JSON.stringify(subCampaigns)} }
+      `);
+    }
+    setIsSubmit(true);
   };
 
   return (
@@ -43,12 +63,20 @@ function App() {
             </Box>
             <TabPanel value={ListTabs.INFO}>
               <div className="infomation">
-                <Infomation onSubmit={handleSubmit} />
+                <Infomation
+                  campaignInfo={campaignInfo as CampaignsInfo}
+                  setCampaignInfo={setCampaignInfo}
+                  isSubmit={isSubmit}
+                />
               </div>
             </TabPanel>
             <TabPanel value={ListTabs.SUB_CAMPAIGNS}>
               <div>
-                <SubCampaigns onSubmit={handleSubmit} />
+                <SubCampaigns
+                  subCampaigns={subCampaigns}
+                  setSubCampaigns={setSubCampaigns}
+                  isSubmit={isSubmit}
+                />
               </div>
             </TabPanel>
           </TabContext>
